@@ -19,6 +19,7 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 	private Board board;
 	private JButton start;
 	private JButton clear;
+	private JButton save;
 	private JComboBox<Integer> drawType;
 	private JSlider pred;
 	private JFrame frame;
@@ -46,6 +47,10 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 		clear = new JButton("Calc Field");
 		clear.setActionCommand("clear");
 		clear.addActionListener(this);
+
+		save = new JButton("save");
+		save.setActionCommand("save_map");
+		save.addActionListener(this);
 		
 		pred = new JSlider();
 		pred.setMinimum(0);
@@ -53,16 +58,17 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 		pred.addChangeListener(this);
 		pred.setValue(maxDelay - timer.getDelay());
 		
-		drawType = new JComboBox<Integer>(Point.types);
+		drawType = new JComboBox<Integer>(new Integer []{0, 1, 2, 3, 4});
 		drawType.addActionListener(this);
 		drawType.setActionCommand("drawType");
 
 		buttonPanel.add(start);
 		buttonPanel.add(clear);
+		buttonPanel.add(save);
 		buttonPanel.add(drawType);
 		buttonPanel.add(pred);
 
-		board = new Board(1024, 768 - buttonPanel.getHeight());
+		board = new Board(720, 720 - buttonPanel.getHeight());
 		container.add(board, BorderLayout.CENTER);
 		container.add(buttonPanel, BorderLayout.SOUTH);
 	}
@@ -70,7 +76,7 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource().equals(timer)) {
 			iterNum++;
-			frame.setTitle("Sound simulation (" + Integer.toString(iterNum) + " iteration)");
+			frame.setTitle("Dzik simulator (" + Integer.toString(iterNum) + " iteration)");
 			board.iteration();
 		} else {
 			String command = e.getActionCommand();
@@ -94,6 +100,9 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 			else if (command.equals("drawType")){
 				int newType = (Integer)drawType.getSelectedItem();
 				board.editType = newType;
+			}
+			else if (command.equals("save_map")){
+				board.save_map();
 			}
 
 		}

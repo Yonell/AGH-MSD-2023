@@ -6,12 +6,12 @@ public class Program extends JFrame {
 	private GUI gof;
 
 	public Program() {
-		setTitle("Pedestrian simulation");
+		setTitle("Dzik simulation");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		gof = new GUI(this);
 		gof.initialize(this.getContentPane());
-		this.setSize(1024, 768);
+		this.setSize(720, 720);
 		this.setVisible(true);
 	}
 

@@ -4,22 +4,30 @@ import java.awt.Insets;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
+import java.io.BufferedWriter;
 import java.io.File;
-import java.util.ArrayList;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
 
 import javax.swing.JComponent;
 import javax.swing.event.MouseInputListener;
 
-import java.util.HashSet;
-
 public class Board extends JComponent implements MouseInputListener, ComponentListener {
 	private static final long serialVersionUID = 1L;
-	private Point[][] points;
+	public Point[][] points;
 	private int size = 10;
-	public int editType=0;
-	private int neighborhood = 1;
+	public int editType = 0;
+	public final Map<Point, Set<Dzik>> dziks = new HashMap<Point, Set<Dzik>>();
+	private int averageAttractiveness = 0;
+	private static final int MAXSIZE = 60;
 	
-	private static final int SFMAX = 100000;
+	private static final int SFMAX = 10000000;
+	private static final int CITYUNATTRACTIVENESS = 10000;
+	private static final int BAJORAATTRACTIVENESS = 100000;
+	private static final int LASATTRACTIVENESS = 1000;
+	private static final int INNEDZIKIUNATTRACTIVENESS = 20000;
+	private static final int DZIKWECHRADIUS = 5;
 
 	public Board(int length, int height) {
 		addMouseListener(this);
@@ -30,20 +38,25 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		initialize(length, height);
 	}
 
-	public void iteration() {	
-		for (int x = 1; x < points.length - 1; ++x)
-			for (int y = 1; y < points[x].length - 1; ++y)
-				points[x][y].move();
+	public void iteration() {
+		calcAverageAttractiveness();
+		calculateStaticField();
+		List<Dzik> dzikList = new ArrayList<Dzik>();
+		for(Set<Dzik> dzikSet : dziks.values())
+			dzikList.addAll(dzikSet);
+		for(Dzik dzik : dzikList)
+					dzik.move();
 		
 		this.repaint();
 	}
 
 	public void clear() {
-		for (int x = 0; x < points.length; ++x)
+		for (int x = 0; x < points.length; ++x) {
 			for (int y = 0; y < points[x].length; ++y) {
-				points[x][y].clear();
+				dziks.remove(points[x][y]);
 			}
-		calculateField();
+		}
+		calculateStaticField();
 		this.repaint();
 	}
 
@@ -52,26 +65,18 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 
 		for (int x = 0; x < points.length; ++x)
 			for (int y = 0; y < points[x].length; ++y)
-				points[x][y] = new Point();
+				points[x][y] = new Point(x,y);
 
 		for (int x = 1; x < points.length-1; ++x) {
 			for (int y = 1; y < points[x].length-1; ++y) {
-				
-				if(neighborhood == 0){
-					points[x][y].addNeighbor(points[x-1][y-1]);
-					points[x][y].addNeighbor(points[x-1][y]);
-					points[x][y].addNeighbor(points[x-1][y+1]);
-					points[x][y].addNeighbor(points[x][y-1]);
-					points[x][y].addNeighbor(points[x][y+1]);
-					points[x][y].addNeighbor(points[x+1][y-1]);
-					points[x][y].addNeighbor(points[x+1][y]);
-					points[x][y].addNeighbor(points[x+1][y+1]);
-				} else {
-					points[x][y].addNeighbor(points[x-1][y]);
-					points[x][y].addNeighbor(points[x][y-1]);
-					points[x][y].addNeighbor(points[x][y+1]);
-					points[x][y].addNeighbor(points[x+1][y]);
-				}
+				points[x][y].addNeighbor(points[x-1][y-1]);
+				points[x][y].addNeighbor(points[x-1][y]);
+				points[x][y].addNeighbor(points[x-1][y+1]);
+				points[x][y].addNeighbor(points[x][y-1]);
+				points[x][y].addNeighbor(points[x][y+1]);
+				points[x][y].addNeighbor(points[x+1][y-1]);
+				points[x][y].addNeighbor(points[x+1][y]);
+				points[x][y].addNeighbor(points[x+1][y+1]);
 			}
 		}
 		File file = new File("resources/map.txt");
@@ -91,12 +96,78 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 				e.printStackTrace();
 			}
 		}
+		for (int x = 0; x < points.length; ++x) {
+			for (int y = 0; y < points[x].length; ++y) {
+				dziks.put(points[x][y], new HashSet<Dzik>());
+			}
+		}
 		this.repaint();
 		
 	}
+	private void calcAverageAttractiveness(){
+		int sum = 0;
+		for (int i = 1; i < points.length-1; ++i) {
+			for (int j = 1; j < points[i].length-1; ++j) {
+				sum -= points[i][j].type == 3 ? CITYUNATTRACTIVENESS : 0;
+				sum += points[i][j].type == 2 ? BAJORAATTRACTIVENESS : 0;
+				sum += points[i][j].type == 1 ? LASATTRACTIVENESS : 0;
+				sum -= dziks.get(points[i][j]).size() * INNEDZIKIUNATTRACTIVENESS;
+			}
+		}
+		averageAttractiveness = sum/MAXSIZE/MAXSIZE;
+	}
+	private int calcPointsStaticField(int x, int y){
+		//temporary fix
+		if(points[x][y].type == 3)
+			return -SFMAX;
+		int sum = 0;
+		for(int i = x-DZIKWECHRADIUS; i <= x+DZIKWECHRADIUS; ++i){
+			for(int j = y-DZIKWECHRADIUS; j <= y+DZIKWECHRADIUS; ++j){
+				int dist = (Math.abs(x - i) + Math.abs(y - j) + 1);
+				if(i > 0 && i <= MAXSIZE && j > 0 && j <= MAXSIZE){
+					sum -= points[i][j].type == 3 ? CITYUNATTRACTIVENESS / dist : 0;
+					sum += points[i][j].type == 2 ? BAJORAATTRACTIVENESS / dist : 0;
+					sum += points[i][j].type == 1 ? LASATTRACTIVENESS / dist : 0;
+					sum -= dziks.get(points[i][j]).size() * INNEDZIKIUNATTRACTIVENESS / dist;
+				} else {
+					sum += averageAttractiveness / dist;
+				}
+			}
+		}
+
+		return sum;
+	}
 	
-	public void calculateField(){
-		
+	public void calculateStaticField(){
+		for (int x = 1; x <= MAXSIZE; ++x)
+			for (int y = 1; y <= MAXSIZE; ++y)
+				if(dziks.get(points[x][y]).size() > 0){
+					if(x!=1){
+						points[x-1][y].setStaticField(calcPointsStaticField(x-1, y));
+						if(y!=1){
+							points[x-1][y-1].setStaticField(calcPointsStaticField(x-1, y-1));
+						}
+						if(y!=MAXSIZE){
+							points[x-1][y+1].setStaticField(calcPointsStaticField(x-1, y+1));
+						}
+					}
+					if(x!=MAXSIZE){
+						points[x+1][y].setStaticField(calcPointsStaticField(x+1, y));
+						if(y!=1){
+							points[x+1][y-1].setStaticField(calcPointsStaticField(x+1, y-1));
+						}
+						if(y!=MAXSIZE){
+							points[x+1][y+1].setStaticField(calcPointsStaticField(x+1, y+1));
+						}
+					}
+					if(y!=1){
+						points[x][y-1].setStaticField(calcPointsStaticField(x, y-1));
+					}
+					if(y!=MAXSIZE){
+						points[x][y+1].setStaticField(calcPointsStaticField(x, y+1));
+					}
+					points[x][y].setStaticField(calcPointsStaticField(x, y));
+				}
 	}
 
 	protected void paintComponent(Graphics g) {
@@ -130,12 +201,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		for (x = 1; x < points.length-1; ++x) {
 			for (y = 1; y < points[x].length-1; ++y) {
 				if(points[x][y].type==0){
-					float staticField = points[x][y].staticField;
-					float intensity = staticField/100;
-					if (intensity > 1.0) {
-						intensity = 1.0f;
-					}
-					g.setColor(new Color(intensity, intensity,intensity ));
+					g.setColor(new Color(1.0f, 1.0f, 1.0f));
 				}
 				else if (points[x][y].type==1){
 					g.setColor(new Color(0.0f, 1.0f, 0.0f, 1.0f));
@@ -146,8 +212,8 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 				else if (points[x][y].type==3){
 					g.setColor(new Color(1.0f, 0.5f, 0.2f, 1.0f));
 				}
-				if (points[x][y].isPedestrian){
-					g.setColor(new Color(0.0f, 0.0f, 1.0f, 1.0f));
+				if(dziks.get(points[x][y]).size()>0){
+					g.setColor(new Color(0.8f, 0.0f, 0.0f, 1.0f));
 				}
 				g.fillRect((x * size) + 1, (y * size) + 1, (size - 1), (size - 1));
 			}
@@ -158,10 +224,9 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	public void mouseClicked(MouseEvent e) {
 		int x = e.getX() / size;
 		int y = e.getY() / size;
-		if ((x < points.length) && (x > 0) && (y < points[x].length) && (y > 0)) {
-			if(editType==3){
-				points[x][y].isPedestrian = true;
-				points[x][y].type = editType;
+		if ((x <= MAXSIZE) && (x > 0) && (y <= MAXSIZE) && (y > 0)) {
+			if(editType==4){
+				dziks.get(points[x][y]).add(new Dzik(x, y, this));
 			}
 			else{
 				points[x][y].type = editType;
@@ -179,14 +244,35 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	public void mouseDragged(MouseEvent e) {
 		int x = e.getX() / size;
 		int y = e.getY() / size;
-		if ((x < points.length) && (x > 0) && (y < points[x].length) && (y > 0)) {
-			if(editType==3){
-				points[x][y].isPedestrian=true;
+		if ((x <= MAXSIZE) && (x > 0) && (y <= MAXSIZE) && (y > 0)) {
+			if(editType==4){
+				dziks.get(points[x][y]).add(new Dzik(x, y, this));
 			}
 			else{
-				points[x][y].type= editType;
+				points[x][y].type = editType;
 			}
 			this.repaint();
+		}
+	}
+
+	public void save_map(){
+		try {
+			File file = new File("resources/map.txt");
+			if(!file.exists()){
+				file.createNewFile();
+			}
+			FileWriter fw = new FileWriter(file.getAbsoluteFile());
+			BufferedWriter bw = new BufferedWriter(fw);
+			bw.write(MAXSIZE + " " + MAXSIZE + "\n");
+			for (int y = 1; y <= MAXSIZE; ++y) {
+				for (int x = 1; x <= MAXSIZE; ++x) {
+					bw.write(points[x][y].type + " ");
+				}
+				bw.write("\n");
+			}
+			bw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
