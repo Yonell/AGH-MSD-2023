@@ -50,6 +50,14 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		this.repaint();
 	}
 
+	public int allDziksHere(int x, int y){
+		int dzik_sum = 0;
+		for (Dzik dzik:dziks.get(points[x][y])){
+			dzik_sum += dzik.getDziks_here();
+		}
+		return dzik_sum;
+	}
+
 	public void clear() {
 		for (int x = 0; x < points.length; ++x) {
 			for (int y = 0; y < points[x].length; ++y) {
@@ -111,7 +119,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 				sum -= points[i][j].type == 3 ? CITYUNATTRACTIVENESS : 0;
 				sum += points[i][j].type == 2 ? BAJORAATTRACTIVENESS : 0;
 				sum += points[i][j].type == 1 ? LASATTRACTIVENESS : 0;
-				sum -= dziks.get(points[i][j]).size() * INNEDZIKIUNATTRACTIVENESS;
+				sum -= allDziksHere(i,j) * INNEDZIKIUNATTRACTIVENESS;
 			}
 		}
 		averageAttractiveness = sum/MAXSIZE/MAXSIZE;
@@ -128,7 +136,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 					sum -= points[i][j].type == 3 ? CITYUNATTRACTIVENESS / dist : 0;
 					sum += points[i][j].type == 2 ? BAJORAATTRACTIVENESS / dist : 0;
 					sum += points[i][j].type == 1 ? LASATTRACTIVENESS / dist : 0;
-					sum -= dziks.get(points[i][j]).size() * INNEDZIKIUNATTRACTIVENESS / dist;
+					sum -= allDziksHere(i,j) * INNEDZIKIUNATTRACTIVENESS / dist;
 				} else {
 					sum += averageAttractiveness / dist;
 				}
@@ -210,10 +218,14 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 					g.setColor(new Color(0.0f, 0.0f, 1.0f, 1.0f));
 				}
 				else if (points[x][y].type==3){
-					g.setColor(new Color(1.0f, 0.5f, 0.2f, 1.0f));
+					g.setColor(new Color(0.5f, 0.5f, 0.5f, 0.7f));
 				}
 				if(dziks.get(points[x][y]).size()>0){
-					g.setColor(new Color(0.8f, 0.0f, 0.0f, 1.0f));
+					float color = (float) (allDziksHere(x,y) * 0.1 + 0.4);
+
+					if (color > 1) {color = 1;}
+
+					g.setColor(new Color(1.0f, 0.5f, 0.2f, color));
 				}
 				g.fillRect((x * size) + 1, (y * size) + 1, (size - 1), (size - 1));
 			}
@@ -226,7 +238,9 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		int y = e.getY() / size;
 		if ((x <= MAXSIZE) && (x > 0) && (y <= MAXSIZE) && (y > 0)) {
 			if(editType==4){
-				dziks.get(points[x][y]).add(new Dzik(x, y, this));
+				//dziks.get(points[x][y]).add(new Dzik(x, y, this));
+				//let's make it a bit more random:
+				dziks.get(points[x][y]).add(new Dzik(x, y, this,((int) (Math.random() * 10)) % 6 + 1));
 			}
 			else{
 				points[x][y].type = editType;
@@ -246,7 +260,8 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		int y = e.getY() / size;
 		if ((x <= MAXSIZE) && (x > 0) && (y <= MAXSIZE) && (y > 0)) {
 			if(editType==4){
-				dziks.get(points[x][y]).add(new Dzik(x, y, this));
+				//dziks.get(points[x][y]).add(new Dzik(x, y, this));
+				dziks.get(points[x][y]).add(new Dzik(x, y, this,((int) (Math.random() * 10)) % 6 + 1));
 			}
 			else{
 				points[x][y].type = editType;

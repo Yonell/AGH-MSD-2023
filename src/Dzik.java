@@ -6,6 +6,8 @@ public class Dzik {
     private int x;
     private int y;
     private final Board board;
+
+    private int dziks_here;
     private static final int ATTRACTIVENESSRANDOMNESS = 1000000;
 
 
@@ -13,7 +15,19 @@ public class Dzik {
         this.x = x;
         this.y = y;
         this.board = board;
+        this.dziks_here = 1;
     }
+
+    public Dzik(int x, int y, Board board, int dziks_here) {
+        this.x = x;
+        this.y = y;
+        this.board = board;
+        this.dziks_here = dziks_here;
+    }
+
+    public int getDziks_here() {return dziks_here;}
+
+
 
     public void move(){
         ArrayList<Point> neighbors;
