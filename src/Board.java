@@ -18,16 +18,22 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	public Point[][] points;
 	private int size = 10;
 	public int editType = 0;
+	private static int ctr = 0;
 	public final Map<Point, Set<Dzik>> dziks = new HashMap<Point, Set<Dzik>>();
 	private int averageAttractiveness = 0;
-	private static final int MAXSIZE = 60;
+
+	public static final int MAX_SIZE = 60;
 	
 	private static final int SFMAX = 10000000;
-	private static final int CITYUNATTRACTIVENESS = 10000;
-	private static final int BAJORAATTRACTIVENESS = 100000;
-	private static final int LASATTRACTIVENESS = 1000;
-	private static final int INNEDZIKIUNATTRACTIVENESS = 20000;
-	private static final int DZIKWECHRADIUS = 5;
+	private static final int MIASTO_UNATTRACTIVENESS = 10000;
+	private static final int BAJORA_ATTRACTIVENESS = 100000;
+	private static final int LAS_ATTRACTIVENESS = 1000;
+	private static final int OTHER_DZIKS_UNATTRACTIVENESS = 20000;
+	private static final int DZIK_SENSE_RADIUS = 5;
+
+	private static final int GARBAGE_COLLECTION_FREQUENCY = 168;	//how often is garbage collected (in iterations)
+
+	private static final int GARBAGE_COLLECTION_LENGTH = 24;	//how long is garbage collected (in iterations); must be lower than GARBAGECOLLECTIONFREQUENCY
 
 	public Board(int length, int height) {
 		addMouseListener(this);
@@ -39,6 +45,23 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	}
 
 	public void iteration() {
+		if(ctr % GARBAGE_COLLECTION_FREQUENCY == 0){
+			for (Point[] row : points) {
+				for (Point point : row) {
+					if (point.type == 3)
+						point.triggerGarbageCollection();
+				}
+			}
+		}
+		if(ctr % GARBAGE_COLLECTION_FREQUENCY == GARBAGE_COLLECTION_LENGTH){
+			for (Point[] row : points) {
+				for (Point point : row) {
+					if (point.type == 3)
+						point.eatAllFood();
+				}
+			}
+		}
+
 		calcAverageAttractiveness();
 		calculateStaticField();
 		List<Dzik> dzikList = new ArrayList<Dzik>();
@@ -46,14 +69,23 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 			dzikList.addAll(dzikSet);
 		for(Dzik dzik : dzikList)
 					dzik.move();
-		
+		for(Dzik dzik : dzikList)
+					dzik.eat();
+
+		for (int x = 0; x < points.length; ++x) {
+			for (int y = 0; y < points[x].length; ++y) {
+				points[x][y].growFood();
+			}
+		}
+
 		this.repaint();
+		ctr++;
 	}
 
 	public int allDziksHere(int x, int y){
 		int dzik_sum = 0;
 		for (Dzik dzik:dziks.get(points[x][y])){
-			dzik_sum += dzik.getDziks_here();
+			dzik_sum += dzik.getDziksHere();
 		}
 		return dzik_sum;
 	}
@@ -110,33 +142,32 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 			}
 		}
 		this.repaint();
-		
 	}
 	private void calcAverageAttractiveness(){
 		int sum = 0;
 		for (int i = 1; i < points.length-1; ++i) {
 			for (int j = 1; j < points[i].length-1; ++j) {
-				sum -= points[i][j].type == 3 ? CITYUNATTRACTIVENESS : 0;
-				sum += points[i][j].type == 2 ? BAJORAATTRACTIVENESS : 0;
-				sum += points[i][j].type == 1 ? LASATTRACTIVENESS : 0;
-				sum -= allDziksHere(i,j) * INNEDZIKIUNATTRACTIVENESS;
+				sum -= points[i][j].type == 3 ? MIASTO_UNATTRACTIVENESS : 0;
+				sum += points[i][j].type == 2 ? BAJORA_ATTRACTIVENESS : 0;
+				sum += points[i][j].type == 1 ? LAS_ATTRACTIVENESS : 0;
+				sum -= allDziksHere(i,j) * OTHER_DZIKS_UNATTRACTIVENESS;
 			}
 		}
-		averageAttractiveness = sum/MAXSIZE/MAXSIZE;
+		averageAttractiveness = sum/ MAX_SIZE / MAX_SIZE;
 	}
 	private int calcPointsStaticField(int x, int y){
 		//temporary fix
 		if(points[x][y].type == 3)
 			return -SFMAX;
 		int sum = 0;
-		for(int i = x-DZIKWECHRADIUS; i <= x+DZIKWECHRADIUS; ++i){
-			for(int j = y-DZIKWECHRADIUS; j <= y+DZIKWECHRADIUS; ++j){
+		for(int i = x- DZIK_SENSE_RADIUS; i <= x+ DZIK_SENSE_RADIUS; ++i){
+			for(int j = y- DZIK_SENSE_RADIUS; j <= y+ DZIK_SENSE_RADIUS; ++j){
 				int dist = (Math.abs(x - i) + Math.abs(y - j) + 1);
-				if(i > 0 && i <= MAXSIZE && j > 0 && j <= MAXSIZE){
-					sum -= points[i][j].type == 3 ? CITYUNATTRACTIVENESS / dist : 0;
-					sum += points[i][j].type == 2 ? BAJORAATTRACTIVENESS / dist : 0;
-					sum += points[i][j].type == 1 ? LASATTRACTIVENESS / dist : 0;
-					sum -= allDziksHere(i,j) * INNEDZIKIUNATTRACTIVENESS / dist;
+				if(i > 0 && i <= MAX_SIZE && j > 0 && j <= MAX_SIZE){
+					sum -= points[i][j].type == 3 ? MIASTO_UNATTRACTIVENESS / dist : 0;
+					sum += points[i][j].type == 2 ? BAJORA_ATTRACTIVENESS / dist : 0;
+					sum += points[i][j].type == 1 ? LAS_ATTRACTIVENESS / dist : 0;
+					sum -= allDziksHere(i,j) * OTHER_DZIKS_UNATTRACTIVENESS / dist;
 				} else {
 					sum += averageAttractiveness / dist;
 				}
@@ -147,31 +178,31 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	}
 	
 	public void calculateStaticField(){
-		for (int x = 1; x <= MAXSIZE; ++x)
-			for (int y = 1; y <= MAXSIZE; ++y)
+		for (int x = 1; x <= MAX_SIZE; ++x)
+			for (int y = 1; y <= MAX_SIZE; ++y)
 				if(dziks.get(points[x][y]).size() > 0){
 					if(x!=1){
 						points[x-1][y].setStaticField(calcPointsStaticField(x-1, y));
 						if(y!=1){
 							points[x-1][y-1].setStaticField(calcPointsStaticField(x-1, y-1));
 						}
-						if(y!=MAXSIZE){
+						if(y!= MAX_SIZE){
 							points[x-1][y+1].setStaticField(calcPointsStaticField(x-1, y+1));
 						}
 					}
-					if(x!=MAXSIZE){
+					if(x!= MAX_SIZE){
 						points[x+1][y].setStaticField(calcPointsStaticField(x+1, y));
 						if(y!=1){
 							points[x+1][y-1].setStaticField(calcPointsStaticField(x+1, y-1));
 						}
-						if(y!=MAXSIZE){
+						if(y!= MAX_SIZE){
 							points[x+1][y+1].setStaticField(calcPointsStaticField(x+1, y+1));
 						}
 					}
 					if(y!=1){
 						points[x][y-1].setStaticField(calcPointsStaticField(x, y-1));
 					}
-					if(y!=MAXSIZE){
+					if(y!= MAX_SIZE){
 						points[x][y+1].setStaticField(calcPointsStaticField(x, y+1));
 					}
 					points[x][y].setStaticField(calcPointsStaticField(x, y));
@@ -212,13 +243,17 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 					g.setColor(new Color(1.0f, 1.0f, 1.0f));
 				}
 				else if (points[x][y].type==1){
-					g.setColor(new Color(0.0f, 1.0f, 0.0f, 1.0f));
+					float colorWeight = points[x][y].getCurrentFood() / Point.MAX_FOOD_CAP;
+					colorWeight *= 0.4;
+					g.setColor(new Color(0.0f, 1.0f - colorWeight, 0.0f, 1.0f));
 				}
 				else if (points[x][y].type==2){
 					g.setColor(new Color(0.0f, 0.0f, 1.0f, 1.0f));
 				}
 				else if (points[x][y].type==3){
-					g.setColor(new Color(0.5f, 0.5f, 0.5f, 0.7f));
+					float colorWeight = points[x][y].getCurrentFood() / Point.MAX_FOOD_CAP;
+					colorWeight *= 0.3;
+					g.setColor(new Color(0.5f - colorWeight, 0.5f - colorWeight, 0.5f - colorWeight, 0.7f));
 				}
 				if(dziks.get(points[x][y]).size()>0){
 					float color = (float) (allDziksHere(x,y) * 0.1 + 0.4);
@@ -236,7 +271,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	public void mouseClicked(MouseEvent e) {
 		int x = e.getX() / size;
 		int y = e.getY() / size;
-		if ((x <= MAXSIZE) && (x > 0) && (y <= MAXSIZE) && (y > 0)) {
+		if ((x <= MAX_SIZE) && (x > 0) && (y <= MAX_SIZE) && (y > 0)) {
 			if(editType==4){
 				//dziks.get(points[x][y]).add(new Dzik(x, y, this));
 				//let's make it a bit more random:
@@ -250,15 +285,16 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	}
 
 	public void componentResized(ComponentEvent e) {
-		int dlugosc = (this.getWidth() / size) + 1;
-		int wysokosc = (this.getHeight() / size) + 1;
+		//TODO: Delete these
+		//int dlugosc = (this.getWidth() / size) + 1;
+		//int wysokosc = (this.getHeight() / size) + 1;
 		//initialize(dlugosc, wysokosc);
 	}
 
 	public void mouseDragged(MouseEvent e) {
 		int x = e.getX() / size;
 		int y = e.getY() / size;
-		if ((x <= MAXSIZE) && (x > 0) && (y <= MAXSIZE) && (y > 0)) {
+		if ((x <= MAX_SIZE) && (x > 0) && (y <= MAX_SIZE) && (y > 0)) {
 			if(editType==4){
 				//dziks.get(points[x][y]).add(new Dzik(x, y, this));
 				dziks.get(points[x][y]).add(new Dzik(x, y, this,((int) (Math.random() * 10)) % 6 + 1));
@@ -270,7 +306,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		}
 	}
 
-	public void save_map(){
+	public void saveMap(){
 		try {
 			File file = new File("resources/map.txt");
 			if(!file.exists()){
@@ -278,9 +314,9 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 			}
 			FileWriter fw = new FileWriter(file.getAbsoluteFile());
 			BufferedWriter bw = new BufferedWriter(fw);
-			bw.write(MAXSIZE + " " + MAXSIZE + "\n");
-			for (int y = 1; y <= MAXSIZE; ++y) {
-				for (int x = 1; x <= MAXSIZE; ++x) {
+			bw.write(MAX_SIZE + " " + MAX_SIZE + "\n");
+			for (int y = 1; y <= MAX_SIZE; ++y) {
+				for (int x = 1; x <= MAX_SIZE; ++x) {
 					bw.write(points[x][y].type + " ");
 				}
 				bw.write("\n");

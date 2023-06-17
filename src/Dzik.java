@@ -6,39 +6,70 @@ public class Dzik {
     private int x;
     private int y;
     private final Board board;
+    private int dziksHere;
+    private float hungerLevel = 0.0f;    //Current hunger level per Dzik. Dzik won't eat, if it's negative. The higher the hunger, the more it affects Dzik's movement
+    private static final float MOVING_DZIK_CONSUMPTION_RATE = 1.0f;     //How much food per round does Dzik need if it is moving
+    private static final float STATIC_DZIK_CONSUMPTION_RATE = 0.4f;     //How much food per round does Dzik need if it stays on the same field
+    private static final float DZIK_MAX_HUNGER = 10.0f;    //Value at which Dzik dies
+    private static final float DZIK_MIN_HUNGER = -10.0f;    //How much dzik can eat "in advance"
 
-    private int dziks_here;
-    private static final int ATTRACTIVENESSRANDOMNESS = 1000000;
+    private static final float HUNGER_FACTOR_MULTIPLIER_A = 13.81f; //A multiplier in foodFactor = exp((hunger/max_hunger)*A)*B
+    private static final float HUNGER_FACTOR_MULTIPLIER_B = 100.0f; //B multiplier in foodFactor = exp((hunger/max_hunger)*A)*B
+
+    private static final int ATTRACTIVENESS_RANDOMNESS = 200000;
 
 
     public Dzik(int x, int y, Board board) {
         this.x = x;
         this.y = y;
         this.board = board;
-        this.dziks_here = 1;
+        this.dziksHere = 1;
     }
 
-    public Dzik(int x, int y, Board board, int dziks_here) {
+    public Dzik(int x, int y, Board board, int dziksHere) {
         this.x = x;
         this.y = y;
         this.board = board;
-        this.dziks_here = dziks_here;
+        this.dziksHere = dziksHere;
     }
 
-    public int getDziks_here() {return dziks_here;}
+    public int getDziksHere() {return dziksHere;}
 
+    public void eat(){
+        if(this.hungerLevel >= 0){
+            float toBeEaten = this.board.points[this.x][this.y].eatAllFood();
+            this.hungerLevel -= toBeEaten/this.dziksHere;
+            this.hungerLevel = Math.max(DZIK_MIN_HUNGER, this.hungerLevel);
+        }
+        if(this.hungerLevel > DZIK_MAX_HUNGER){
+            this.die();
+        }
+    }
 
+    public void die(){
+        Point currentLocation = this.board.points[this.x][this.y];
+        this.board.dziks.get(currentLocation).remove(this);
+    }
 
     public void move(){
+        final float foodFactor = (float) (Math.exp((this.hungerLevel/DZIK_MAX_HUNGER) * HUNGER_FACTOR_MULTIPLIER_A) * HUNGER_FACTOR_MULTIPLIER_B);
+
         ArrayList<Point> neighbors;
         neighbors = (ArrayList<Point>) board.points[x][y].neighbors.clone();
         neighbors.add(board.points[x][y]);
         Collections.shuffle(neighbors);
-    	Point p = neighbors.stream()
-                .filter(p3 -> p3.x>0 && p3.x <= 60 && p3.y>0 && p3.y <= 60)
-                .max(Comparator.comparingInt(p2 -> p2.staticField + (int) (Math.random() * ATTRACTIVENESSRANDOMNESS)))
+
+        Point p = neighbors.stream()
+                .filter(p3 -> p3.x>0 && p3.x <= Board.MAX_SIZE && p3.y>0 && p3.y <= Board.MAX_SIZE)
+                .max(Comparator.comparingInt(p2 -> p2.staticField + (int) (p2.getCurrentFood()*foodFactor) + (int) (Math.random() * ATTRACTIVENESS_RANDOMNESS)))
                 .get();
     	board.dziks.get(board.points[x][y]).remove(this);
+
+        if(p.x == x && p.y == y)
+            this.hungerLevel += STATIC_DZIK_CONSUMPTION_RATE;
+        else
+            this.hungerLevel += MOVING_DZIK_CONSUMPTION_RATE;
+
         x = p.x;
         y = p.y;
         board.dziks.get(board.points[x][y]).add(this);

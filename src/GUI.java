@@ -49,7 +49,7 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 		clear.addActionListener(this);
 
 		save = new JButton("save");
-		save.setActionCommand("save_map");
+		save.setActionCommand("saveMap");
 		save.addActionListener(this);
 		
 		pred = new JSlider();
@@ -101,8 +101,8 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 				int newType = (Integer)drawType.getSelectedItem();
 				board.editType = newType;
 			}
-			else if (command.equals("save_map")){
-				board.save_map();
+			else if (command.equals("saveMap")){
+				board.saveMap();
 			}
 
 		}
