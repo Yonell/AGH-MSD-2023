@@ -29,7 +29,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	private static final int BAJORA_ATTRACTIVENESS = 100000;
 	private static final int LAS_ATTRACTIVENESS = 1000;
 	private static final int OTHER_DZIKS_UNATTRACTIVENESS = 20000;
-	private static final int DZIK_SENSE_RADIUS = 5;
+	public static final int DZIK_SENSE_RADIUS = 5;
 
 	private static final int GARBAGE_COLLECTION_FREQUENCY = 168;	//how often is garbage collected (in iterations)
 
@@ -156,9 +156,6 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		averageAttractiveness = sum/ MAX_SIZE / MAX_SIZE;
 	}
 	private int calcPointsStaticField(int x, int y){
-		//temporary fix
-		if(points[x][y].type == 3)
-			return -SFMAX;
 		int sum = 0;
 		for(int i = x- DZIK_SENSE_RADIUS; i <= x+ DZIK_SENSE_RADIUS; ++i){
 			for(int j = y- DZIK_SENSE_RADIUS; j <= y+ DZIK_SENSE_RADIUS; ++j){
@@ -251,7 +248,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 					g.setColor(new Color(0.0f, 0.0f, 1.0f, 1.0f));
 				}
 				else if (points[x][y].type==3){
-					float colorWeight = points[x][y].getCurrentFood() / Point.MAX_FOOD_CAP;
+					float colorWeight = points[x][y].getCurrentFood() / Point.MAX_GARBAGE_FOOD;
 					colorWeight *= 0.3;
 					g.setColor(new Color(0.5f - colorWeight, 0.5f - colorWeight, 0.5f - colorWeight, 0.7f));
 				}

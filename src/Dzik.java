@@ -8,13 +8,13 @@ public class Dzik {
     private final Board board;
     private int dziksHere;
     private float hungerLevel = 0.0f;    //Current hunger level per Dzik. Dzik won't eat, if it's negative. The higher the hunger, the more it affects Dzik's movement
-    private static final float MOVING_DZIK_CONSUMPTION_RATE = 1.0f;     //How much food per round does Dzik need if it is moving
-    private static final float STATIC_DZIK_CONSUMPTION_RATE = 0.4f;     //How much food per round does Dzik need if it stays on the same field
-    private static final float DZIK_MAX_HUNGER = 10.0f;    //Value at which Dzik dies
+    private static final float MOVING_DZIK_CONSUMPTION_RATE = 0.7f;     //How much food per round does Dzik need if it is moving
+    private static final float STATIC_DZIK_CONSUMPTION_RATE = 0.3f;     //How much food per round does Dzik need if it stays on the same field
+    private static final float DZIK_MAX_HUNGER = 50.0f;    //Value at which Dzik dies
     private static final float DZIK_MIN_HUNGER = -10.0f;    //How much dzik can eat "in advance"
 
-    private static final float HUNGER_FACTOR_MULTIPLIER_A = 13.81f; //A multiplier in foodFactor = exp((hunger/max_hunger)*A)*B
-    private static final float HUNGER_FACTOR_MULTIPLIER_B = 100.0f; //B multiplier in foodFactor = exp((hunger/max_hunger)*A)*B
+    private static final float HUNGER_FACTOR_MULTIPLIER_A = 0.38f; //A multiplier in foodFactor = exp((hunger*A)*B
+    private static final float HUNGER_FACTOR_MULTIPLIER_B = 10000.0f; //B multiplier in foodFactor = exp((hunger*A)*B
 
     private static final int ATTRACTIVENESS_RANDOMNESS = 200000;
 
@@ -52,17 +52,21 @@ public class Dzik {
     }
 
     public void move(){
-        final float foodFactor = (float) (Math.exp((this.hungerLevel/DZIK_MAX_HUNGER) * HUNGER_FACTOR_MULTIPLIER_A) * HUNGER_FACTOR_MULTIPLIER_B);
+        final float foodFactor = (float) (Math.exp(this.hungerLevel * HUNGER_FACTOR_MULTIPLIER_A) * HUNGER_FACTOR_MULTIPLIER_B);
 
         ArrayList<Point> neighbors;
         neighbors = (ArrayList<Point>) board.points[x][y].neighbors.clone();
         neighbors.add(board.points[x][y]);
         Collections.shuffle(neighbors);
 
+
         Point p = neighbors.stream()
                 .filter(p3 -> p3.x>0 && p3.x <= Board.MAX_SIZE && p3.y>0 && p3.y <= Board.MAX_SIZE)
-                .max(Comparator.comparingInt(p2 -> p2.staticField + (int) (p2.getCurrentFood()*foodFactor) + (int) (Math.random() * ATTRACTIVENESS_RANDOMNESS)))
-                .get();
+                .max(Comparator.comparingInt(
+                        p2 -> p2.staticField
+                        + (int) (p2.calculateFoodSmell(Board.DZIK_SENSE_RADIUS)*foodFactor)
+                        + (int) (Math.random() * ATTRACTIVENESS_RANDOMNESS))
+                ).get();
     	board.dziks.get(board.points[x][y]).remove(this);
 
         if(p.x == x && p.y == y)
@@ -85,5 +89,4 @@ public class Dzik {
     public int hashCode(){
         return super.hashCode();
     }
-
 }

@@ -9,7 +9,7 @@ public class Point{
 	public ArrayList<Point> neighbors;
 
 	@Deprecated
-	public static Integer []types ={0,1,2,3};// 0 - pole nieokreślone, 1 - las, 2 - podmokłe, 3 - miasto
+	public static Integer [] types = {0,1,2,3};// 0 - pole nieokreślone, 1 - las, 2 - podmokłe, 3 - miasto
 
 	public boolean garbageCollection;
 	public int type;
@@ -26,12 +26,14 @@ public class Point{
 	private float currentFood;
 	private float foodCap;
 	private Random rng = new Random();
-	private static final float MIN_FOOD_PER_ROUND = 0.005f;
-	private static final float MAX_FOOD_PER_ROUND = 0.03f;
-	private static final float MIN_STARTING_FOOD = 0.0f;
+	private static final float MIN_FOOD_PER_ROUND = 0.008f;
+	private static final float MAX_FOOD_PER_ROUND = 0.1f;
+	private static final float MIN_STARTING_FOOD = 0.05f;
 	private static final float MAX_STARTING_FOOD = 1.0f;
-	private static final float MIN_FOOD_CAP = 6.0f;
-	public static final float MAX_FOOD_CAP = 10.0f;
+	private static final float MIN_FOOD_CAP = 1.0f;
+	public static final float MAX_FOOD_CAP = 3.0f;
+	private static final float MIN_GARBAGE_FOOD = 10.0f;
+	public static final float MAX_GARBAGE_FOOD = 25.0f;
 
 	public Point(int x, int y) {
 		this.x=x;
@@ -60,7 +62,7 @@ public class Point{
 			case 3: {
 				if (this.garbageCollection) {
 					this.garbageCollection = false;
-					this.currentFood = this.foodCap;
+					this.currentFood = rng.nextFloat(MIN_GARBAGE_FOOD, MAX_GARBAGE_FOOD);
 				}
 			} break;
 			default: {
@@ -71,6 +73,20 @@ public class Point{
 
 	public float getCurrentFood() {
 		return this.currentFood;
+	}
+
+	public float calculateFoodSmell(int depth){
+		if(depth == 1){
+			return this.currentFood;
+		}
+		else {
+			float maxVal = 0.0f;
+			for (Point nei : neighbors) {
+				float retVal = nei.calculateFoodSmell(depth-1);
+				maxVal = Math.max(maxVal, retVal);
+			}
+			return Math.max(this.currentFood, maxVal/2);
+		}
 	}
 
 	public float eatAllFood() {
