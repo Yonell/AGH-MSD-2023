@@ -17,6 +17,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	private static final long serialVersionUID = 1L;
 	private static final int HUNTER_SENSE_RADIUS = 5;
 	public Point[][] points;
+	Random rand = new Random();
 	private int size = 10;
 	public int editType = 0;
 	private static int ctr = 0;
@@ -35,6 +36,8 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	private static final int GARBAGE_COLLECTION_FREQUENCY = 168;	//how often is garbage collected (in iterations)
 
 	private static final int GARBAGE_COLLECTION_LENGTH = 24;	//how long is garbage collected (in iterations); must be lower than GARBAGECOLLECTIONFREQUENCY
+
+	private static final float HUNTER_KILL_PROPABILITY = 0.1f;
 
 	public Board(int length, int height) {
 		addMouseListener(this);
@@ -216,7 +219,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 					for(int i = x- HUNTER_SENSE_RADIUS; i <= x+ HUNTER_SENSE_RADIUS; ++i){
 						for(int j = y- HUNTER_SENSE_RADIUS; j <= y+ HUNTER_SENSE_RADIUS; ++j){
 							if(i > 0 && i <= MAX_SIZE && j > 0 && j <= MAX_SIZE){
-								if(dziks.get(points[i][j]).size() > 0) {
+								if(dziks.get(points[i][j]).size() > 0 && rand.nextFloat() < HUNTER_KILL_PROPABILITY) {
 									((Dzik) (dziks.get(points[i][j]).toArray()[0])).kill_one();
 									points[i][j].setCurrentFood(0);
 								}
