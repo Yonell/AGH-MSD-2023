@@ -161,18 +161,44 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		}
 		averageAttractiveness = sum/ MAX_SIZE / MAX_SIZE;
 	}
+
+	private int calculateValueToAdd(int x, int y, int dist){
+		int sum = 0;
+		sum -= points[x][y].type == 3 ? MIASTO_UNATTRACTIVENESS / dist : 0;
+		sum += points[x][y].type == 2 ? BAJORA_ATTRACTIVENESS / dist : 0;
+		sum += points[x][y].type == 1 ? LAS_ATTRACTIVENESS / dist : 0;
+		sum -= allDziksHere(x,y) * OTHER_DZIKS_UNATTRACTIVENESS / dist;
+		return sum;
+	}
 	private int calcPointsStaticField(int x, int y){
 		int sum = 0;
 		for(int i = x- DZIK_SENSE_RADIUS; i <= x+ DZIK_SENSE_RADIUS; ++i){
 			for(int j = y- DZIK_SENSE_RADIUS; j <= y+ DZIK_SENSE_RADIUS; ++j){
 				int dist = (Math.abs(x - i) + Math.abs(y - j) + 1);
 				if(i > 0 && i <= MAX_SIZE && j > 0 && j <= MAX_SIZE){
-					sum -= points[i][j].type == 3 ? MIASTO_UNATTRACTIVENESS / dist : 0;
-					sum += points[i][j].type == 2 ? BAJORA_ATTRACTIVENESS / dist : 0;
-					sum += points[i][j].type == 1 ? LAS_ATTRACTIVENESS / dist : 0;
-					sum -= allDziksHere(i,j) * OTHER_DZIKS_UNATTRACTIVENESS / dist;
+					sum += calculateValueToAdd(i,j,dist);
 				} else {
-					sum += averageAttractiveness / dist;
+					if(i <= 0){
+						if (j <= 0) {
+							sum += calculateValueToAdd(1,1,dist);
+						} else if (j > MAX_SIZE) {
+							sum += calculateValueToAdd(1,MAX_SIZE,dist);
+						} else {
+							sum += calculateValueToAdd(1,j,dist);
+						}
+					} else if (i > MAX_SIZE) {
+						if (j <= 0) {
+							sum += calculateValueToAdd(MAX_SIZE,1,dist);
+						} else if (j > MAX_SIZE) {
+							sum += calculateValueToAdd(MAX_SIZE,MAX_SIZE,dist);
+						} else {
+							sum += calculateValueToAdd(MAX_SIZE,j,dist);
+						}
+					} else if (j <= 0) {
+						sum += calculateValueToAdd(i,1,dist);
+					} else {
+						sum += calculateValueToAdd(i,MAX_SIZE,dist);
+					}
 				}
 			}
 		}
