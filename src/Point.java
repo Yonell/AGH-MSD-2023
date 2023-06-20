@@ -9,7 +9,7 @@ public class Point{
 	public ArrayList<Point> neighbors;
 
 	@Deprecated
-	public static Integer [] types = {0,1,2,3};// 0 - pole nieokreślone, 1 - las, 2 - podmokłe, 3 - miasto
+	public static Integer [] types = {0,1,2,3,4};// 0 - pole nieokreślone, 1 - las, 2 - podmokłe, 3 - miasto, 4 - myśliwy
 
 	public boolean garbageCollection;
 	public int type;

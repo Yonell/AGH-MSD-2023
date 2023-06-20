@@ -15,6 +15,7 @@ import javax.swing.event.MouseInputListener;
 
 public class Board extends JComponent implements MouseInputListener, ComponentListener {
 	private static final long serialVersionUID = 1L;
+	private static final int HUNTER_SENSE_RADIUS = 5;
 	public Point[][] points;
 	private int size = 10;
 	public int editType = 0;
@@ -61,6 +62,8 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 				}
 			}
 		}
+
+		theHunterKills();
 
 		calcAverageAttractiveness();
 		calculateStaticField();
@@ -206,6 +209,22 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 				}
 	}
 
+	void theHunterKills(){
+		for (int x = 1; x <= MAX_SIZE; ++x)
+			for (int y = 1; y <= MAX_SIZE; ++y)
+				if(points[x][y].type == 4){
+					for(int i = x- HUNTER_SENSE_RADIUS; i <= x+ HUNTER_SENSE_RADIUS; ++i){
+						for(int j = y- HUNTER_SENSE_RADIUS; j <= y+ HUNTER_SENSE_RADIUS; ++j){
+							if(i > 0 && i <= MAX_SIZE && j > 0 && j <= MAX_SIZE){
+								if(dziks.get(points[i][j]).size() > 0){
+									dziks.get(points[i][j]).clear();
+								}
+							}
+						}
+					}
+				}
+	}
+
 	protected void paintComponent(Graphics g) {
 		if (isOpaque()) {
 			g.setColor(getBackground());
@@ -252,6 +271,9 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 					colorWeight *= 0.3;
 					g.setColor(new Color(0.5f - colorWeight, 0.5f - colorWeight, 0.5f - colorWeight, 0.7f));
 				}
+				else if (points[x][y].type==4){
+					g.setColor(new Color(0.5f,0.3f,0.3f,1.0f));
+				}
 				if(dziks.get(points[x][y]).size()>0){
 					float color = (float) (allDziksHere(x,y) * 0.1 + 0.4);
 
@@ -269,7 +291,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		int x = e.getX() / size;
 		int y = e.getY() / size;
 		if ((x <= MAX_SIZE) && (x > 0) && (y <= MAX_SIZE) && (y > 0)) {
-			if(editType==4){
+			if(editType==5){
 				//dziks.get(points[x][y]).add(new Dzik(x, y, this));
 				//let's make it a bit more random:
 				dziks.get(points[x][y]).add(new Dzik(x, y, this,((int) (Math.random() * 10)) % 6 + 1));
@@ -292,7 +314,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		int x = e.getX() / size;
 		int y = e.getY() / size;
 		if ((x <= MAX_SIZE) && (x > 0) && (y <= MAX_SIZE) && (y > 0)) {
-			if(editType==4){
+			if(editType==5){
 				//dziks.get(points[x][y]).add(new Dzik(x, y, this));
 				dziks.get(points[x][y]).add(new Dzik(x, y, this,((int) (Math.random() * 10)) % 6 + 1));
 			}
