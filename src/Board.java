@@ -216,8 +216,9 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 					for(int i = x- HUNTER_SENSE_RADIUS; i <= x+ HUNTER_SENSE_RADIUS; ++i){
 						for(int j = y- HUNTER_SENSE_RADIUS; j <= y+ HUNTER_SENSE_RADIUS; ++j){
 							if(i > 0 && i <= MAX_SIZE && j > 0 && j <= MAX_SIZE){
-								if(dziks.get(points[i][j]).size() > 0){
-									dziks.get(points[i][j]).clear();
+								if(dziks.get(points[i][j]).size() > 0) {
+									((Dzik) (dziks.get(points[i][j]).toArray()[0])).kill_one();
+									points[i][j].setCurrentFood(0);
 								}
 							}
 						}

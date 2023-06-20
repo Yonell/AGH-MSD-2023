@@ -1,6 +1,4 @@
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -12,6 +10,7 @@ import javax.swing.JSlider;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.ImageIcon;
 
 public class GUI extends JPanel implements ActionListener, ChangeListener {
 	private static final long serialVersionUID = 1L;

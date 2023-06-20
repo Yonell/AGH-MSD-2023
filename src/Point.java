@@ -14,15 +14,13 @@ public class Point{
 	public boolean garbageCollection;
 	public int type;
 	public int staticField;
-
-	@Deprecated
-	public int dynamicField1;
-	@Deprecated
-	public int dynamicField2;
-	@Deprecated
-	public boolean isPedestrian;
 	public int x;
 	public int y;
+
+	public void setCurrentFood(float currentFood) {
+		this.currentFood = currentFood;
+	}
+
 	private float currentFood;
 	private float foodCap;
 	private Random rng = new Random();

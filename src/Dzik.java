@@ -51,6 +51,14 @@ public class Dzik {
         this.board.dziks.get(currentLocation).remove(this);
     }
 
+    public void kill_one(){
+    	if(this.dziksHere > 1){
+    		this.dziksHere--;
+    	} else {
+    		this.die();
+    	}
+    }
+
     public void move(){
         final float foodFactor = (float) (Math.exp(this.hungerLevel * HUNGER_FACTOR_MULTIPLIER_A) * HUNGER_FACTOR_MULTIPLIER_B);
 
