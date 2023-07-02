@@ -16,6 +16,7 @@ import javax.swing.event.MouseInputListener;
 public class Board extends JComponent implements MouseInputListener, ComponentListener {
 	private static final long serialVersionUID = 1L;
 	private static final int HUNTER_SENSE_RADIUS = 5;
+	private static final int STATS_SAVE_PERIOD = 20;
 	public Point[][] points;
 	Random rand = new Random();
 	private int size = 10;
@@ -23,6 +24,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	private static int ctr = 0;
 	public final Map<Point, Set<Dzik>> dziks = new HashMap<Point, Set<Dzik>>();
 	private int averageAttractiveness = 0;
+	private List<IterationStatistics> stats = new ArrayList<IterationStatistics>();
 
 	public static final int MAX_SIZE = 60;
 	
@@ -49,6 +51,12 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	}
 
 	public void iteration() {
+
+		stats.add(new IterationStatistics(ctr, countDziks(), countDziksInCities(), countDziksInTheWild(), countFood()));
+		if(ctr%STATS_SAVE_PERIOD == 0){
+			saveStats();
+		}
+
 		if(ctr % GARBAGE_COLLECTION_FREQUENCY == 0){
 			for (Point[] row : points) {
 				for (Point point : row) {
@@ -86,6 +94,66 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 
 		this.repaint();
 		ctr++;
+	}
+
+	private int countDziks() {
+		int sum = 0;
+		for(Set<Dzik> dzikSet : dziks.values())
+			for(Dzik dzik : dzikSet)
+				sum += dzik.getDziksHere();
+		return sum;
+	}
+
+	private void saveStats() {
+		try {
+			File file = new File("out/stats.txt");
+			if (!file.exists()) {
+				file.createNewFile();
+			}
+			FileWriter fw = new FileWriter(file.getAbsoluteFile(), false);
+			BufferedWriter bw = new BufferedWriter(fw);
+			for(IterationStatistics stat : stats){
+				bw.write(stat.toString());
+				bw.newLine();
+			}
+			bw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private int countFood() {
+		int sum = 0;
+		for(int x = 0; x < points.length; ++x){
+			for(int y = 0; y < points[x].length; ++y){
+				sum += points[x][y].getCurrentFood();
+			}
+		}
+		return sum;
+	}
+
+	private int countDziksInTheWild() {
+		int sum = 0;
+		for(int x = 0; x < points.length; ++x){
+			for(int y = 0; y < points[x].length; ++y){
+				if(points[x][y].type == 1 || points[x][y].type == 2)
+					for(Dzik dzik : this.dziks.get(points[x][y]))
+						sum += dzik.getDziksHere();
+			}
+		}
+		return sum;
+	}
+
+	private int countDziksInCities() {
+		int sum = 0;
+		for(int x = 0; x < points.length; ++x){
+			for(int y = 0; y < points[x].length; ++y){
+				if(points[x][y].type == 3)
+					for(Dzik dzik : this.dziks.get(points[x][y]))
+						sum += dzik.getDziksHere();
+			}
+		}
+		return sum;
 	}
 
 	public int allDziksHere(int x, int y){

@@ -25,7 +25,7 @@ public class Point{
 	private float foodCap;
 	private Random rng = new Random();
 	private static final float MIN_FOOD_PER_ROUND = 0.008f;
-	private static final float MAX_FOOD_PER_ROUND = 0.08f;
+	private static final float MAX_FOOD_PER_ROUND = 0.025f;
 	private static final float MIN_STARTING_FOOD = 0.05f;
 	private static final float MAX_STARTING_FOOD = 1.0f;
 	private static final float MIN_FOOD_CAP = 1.0f;

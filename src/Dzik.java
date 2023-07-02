@@ -16,7 +16,7 @@ public class Dzik {
     private static final float HUNGER_FACTOR_MULTIPLIER_A = 0.38f; //A multiplier in foodFactor = exp((hunger*A)*B
     private static final float HUNGER_FACTOR_MULTIPLIER_B = 10000.0f; //B multiplier in foodFactor = exp((hunger*A)*B
 
-    private static final int ATTRACTIVENESS_RANDOMNESS = 200000;
+    private static final int ATTRACTIVENESS_RANDOMNESS = 20000;
 
 
     public Dzik(int x, int y, Board board) {
