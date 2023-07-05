@@ -27,7 +27,6 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 	private Timer timer;
 	private Board board;
 	private JButton start;
-	private JButton clear;
 	private JButton save;
 	private JComboBox<Integer> drawType;
 	private JSlider pred;
@@ -52,10 +51,6 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 		start = new JButton("Start");
 		start.setActionCommand("Start");
 		start.addActionListener(this);
-
-		clear = new JButton("Calc Field");
-		clear.setActionCommand("clear");
-		clear.addActionListener(this);
 
 		save = new JButton("save");
 		save.setActionCommand("saveMap");
@@ -82,7 +77,6 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 		//picLabel.setPreferredSize(new Dimension(500, 100));
 
 		buttonPanel.add(start);
-		buttonPanel.add(clear);
 		buttonPanel.add(save);
 		buttonPanel.add(drawType);
 		buttonPanel.add(pred);
@@ -110,7 +104,6 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 					start.setText("Start");
 				}
 				running = !running;
-				clear.setEnabled(true);
 
 			} else if (command.equals("clear")) {
 				iterNum = 0;
