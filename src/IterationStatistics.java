@@ -5,6 +5,10 @@ public class IterationStatistics {
     private int dziksInTheWild;
     private int food;
 
+
+
+
+
     public IterationStatistics(int iteration, int dziks, int dziksInCities, int dziksInTheWild, int food) {
         this.iteration = iteration;
         this.dziks = dziks;
@@ -29,12 +33,10 @@ public class IterationStatistics {
         return dziksInTheWild;
     }
 
-    public int getFood() {
-        return food;
-    }
+    public int getFood() {return food;}
 
     public String toString() {
-    	return Integer.toString(iteration) + " " + Integer.toString(dziks) + " " + Integer.toString(dziksInCities) + " " + Integer.toString(dziksInTheWild) + " " + Integer.toString(food);
+        return Integer.toString(iteration) + " " + Integer.toString(dziks) + " " + Integer.toString(dziksInCities) +
+                " " + Integer.toString(dziksInTheWild) + " " + Integer.toString(food);
     }
-
 }

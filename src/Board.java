@@ -35,9 +35,11 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	private static final int OTHER_DZIKS_UNATTRACTIVENESS = 20000;
 	public static final int DZIK_SENSE_RADIUS = 5;
 
-	private static final int GARBAGE_COLLECTION_FREQUENCY = 168;	//how often is garbage collected (in iterations)
+	private static final int GARBAGE_COLLECTION_FREQUENCY = 168;	
+	//how often is garbage collected (in iterations)
 
-	private static final int GARBAGE_COLLECTION_LENGTH = 24;	//how long is garbage collected (in iterations); must be lower than GARBAGECOLLECTIONFREQUENCY
+	private static final int GARBAGE_COLLECTION_LENGTH = 24;	
+	//how long is garbage collected (in iterations); must be lower than GARBAGECOLLECTIONFREQUENCY
 
 	private static final float HUNTER_KILL_PROPABILITY = 0.1f;
 

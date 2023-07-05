@@ -7,11 +7,21 @@ public class Dzik {
     private int y;
     private final Board board;
     private int dziksHere;
-    private float hungerLevel = 0.0f;    //Current hunger level per Dzik. Dzik won't eat, if it's negative. The higher the hunger, the more it affects Dzik's movement
-    private static final float MOVING_DZIK_CONSUMPTION_RATE = 0.7f;     //How much food per round does Dzik need if it is moving
-    private static final float STATIC_DZIK_CONSUMPTION_RATE = 0.3f;     //How much food per round does Dzik need if it stays on the same field
-    private static final float DZIK_MAX_HUNGER = 50.0f;    //Value at which Dzik dies
-    private static final float DZIK_MIN_HUNGER = -10.0f;    //How much dzik can eat "in advance"
+    private float hungerLevel = 0.0f;
+    //Current hunger level per Dzik. Dzik won't eat, if it's negative.
+    // The higher the hunger, the more it affects Dzik's movement
+
+    private static final float MOVING_DZIK_CONSUMPTION_RATE = 0.7f;
+    //How much food per round does Dzik need if it is moving
+
+    private static final float STATIC_DZIK_CONSUMPTION_RATE = 0.3f;
+    //How much food per round does Dzik need if it stays on the same field
+
+    private static final float DZIK_MAX_HUNGER = 50.0f;
+    //Value at which Dzik dies
+
+    private static final float DZIK_MIN_HUNGER = -10.0f;
+    //How much dzik can eat "in advance"
 
     private static final float HUNGER_FACTOR_MULTIPLIER_A = 0.38f; //A multiplier in foodFactor = exp((hunger*A)*B
     private static final float HUNGER_FACTOR_MULTIPLIER_B = 10000.0f; //B multiplier in foodFactor = exp((hunger*A)*B
