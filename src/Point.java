@@ -22,8 +22,8 @@ public class Point{
 	}
 
 	private float currentFood;
-	private float foodCap;
-	private Random rng = new Random();
+	private final float foodCap;
+	private final Random rng = new Random();
 	private static final float MIN_FOOD_PER_ROUND = 0.008f;
 	private static final float MAX_FOOD_PER_ROUND = 0.025f;
 	private static final float MIN_STARTING_FOOD = 0.05f;
@@ -43,29 +43,21 @@ public class Point{
 		this.currentFood = rng.nextFloat(MIN_STARTING_FOOD, MAX_STARTING_FOOD);
 	}
 
-	public Point(int type) {
-		this.type=type;
-		staticField = SFMAX;
-		neighbors= new ArrayList<Point>();
-		this.foodCap = rng.nextFloat(MIN_FOOD_CAP, MAX_FOOD_CAP);
-		this.currentFood = rng.nextFloat(MIN_STARTING_FOOD, MAX_STARTING_FOOD);
-	}
-
 	public void growFood() {
-		switch (this.type){
-			case 1:{
+		switch (this.type) {
+			case 1 -> {
 				this.currentFood += rng.nextFloat(MIN_FOOD_PER_ROUND, MAX_FOOD_PER_ROUND);
 				this.currentFood = Math.min(this.foodCap, this.currentFood);
-			} break;
-			case 3: {
+			}
+			case 3 -> {
 				if (this.garbageCollection) {
 					this.garbageCollection = false;
 					this.currentFood = rng.nextFloat(MIN_GARBAGE_FOOD, MAX_GARBAGE_FOOD);
 				}
-			} break;
-			default: {
+			}
+			default -> {
 				this.currentFood = 0.0f;
-			} break;
+			}
 		}
 	}
 

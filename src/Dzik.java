@@ -10,7 +10,7 @@ public class Dzik {
     private float hungerLevel = 0.0f;    //Current hunger level per Dzik. Dzik won't eat, if it's negative. The higher the hunger, the more it affects Dzik's movement
     private static final float MOVING_DZIK_CONSUMPTION_RATE = 0.7f;     //How much food per round does Dzik need if it is moving
     private static final float STATIC_DZIK_CONSUMPTION_RATE = 0.3f;     //How much food per round does Dzik need if it stays on the same field
-    private static final float DZIK_MAX_HUNGER = 50.0f;    //Value at which Dzik dies
+    private static final float DZIK_MAX_HUNGER = 150.0f;    //Value at which Dzik dies
     private static final float DZIK_MIN_HUNGER = -10.0f;    //How much dzik can eat "in advance"
 
     private static final float HUNGER_FACTOR_MULTIPLIER_A = 0.38f; //A multiplier in foodFactor = exp((hunger*A)*B
@@ -18,19 +18,19 @@ public class Dzik {
 
     private static final int ATTRACTIVENESS_RANDOMNESS = 20000;
 
+    public Dzik(int x, int y, Board board, int dziksHere) {
+        this.x = x;
+        this.y = y;
+        this.board = board;
+        this.dziksHere = dziksHere;
+    }
+
 
     public Dzik(int x, int y, Board board) {
         this.x = x;
         this.y = y;
         this.board = board;
         this.dziksHere = 1;
-    }
-
-    public Dzik(int x, int y, Board board, int dziksHere) {
-        this.x = x;
-        this.y = y;
-        this.board = board;
-        this.dziksHere = dziksHere;
     }
 
     public int getDziksHere() {return dziksHere;}
@@ -42,7 +42,11 @@ public class Dzik {
             this.hungerLevel = Math.max(DZIK_MIN_HUNGER, this.hungerLevel);
         }
         if(this.hungerLevel > DZIK_MAX_HUNGER){
-            this.die();
+            if(this.dziksHere > 1){
+                this.dziksHere--;
+            } else {
+                this.die();
+            }
         }
     }
 
@@ -74,7 +78,8 @@ public class Dzik {
                         p2 -> p2.staticField
                         + (int) (p2.calculateFoodSmell(Board.DZIK_SENSE_RADIUS)*foodFactor)
                         + (int) (Math.random() * ATTRACTIVENESS_RANDOMNESS))
-                ).get();
+                ).orElseThrow();
+
     	board.dziks.get(board.points[x][y]).remove(this);
 
         if(p.x == x && p.y == y)
