@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileInputStream;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -11,6 +12,15 @@ import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.ImageIcon;
+
+import java.io.*;
+import java.util.*;
+
+import javax.swing.JFrame;
+
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import javax.swing.JLabel;
 
 public class GUI extends JPanel implements ActionListener, ChangeListener {
 	private static final long serialVersionUID = 1L;
@@ -61,11 +71,23 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 		drawType.addActionListener(this);
 		drawType.setActionCommand("drawType");
 
+		BufferedImage myPicture = null;
+		try {
+			myPicture = ImageIO.read(new File("resources/legenda_dziki.png"));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		Image resized = myPicture.getScaledInstance(700, 200, Image.SCALE_SMOOTH);
+		JLabel picLabel = new JLabel(new ImageIcon(resized));
+		//picLabel.setPreferredSize(new Dimension(500, 100));
+
 		buttonPanel.add(start);
 		buttonPanel.add(clear);
 		buttonPanel.add(save);
 		buttonPanel.add(drawType);
 		buttonPanel.add(pred);
+		buttonPanel.add(picLabel);
+
 
 		board = new Board(720, 720 - buttonPanel.getHeight());
 		container.add(board, BorderLayout.CENTER);
